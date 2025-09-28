@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<title>🐘 Koleksi Gajah SMP</title>
+<style>
+body {
+  font-family: Arial; text-align:center; margin:0; padding:0;
+  background: url('https://cdn.pixabay.com/photo/2017/08/30/01/05/africa-2691077_1280.jpg') no-repeat center center fixed;
+  background-size: cover; color:#fff;
+}
+h1,h2{color:#004d40; text-shadow:1px 1px 2px #000;}
+.board { margin: 10px; }
+.kartu{display:inline-block; width:80px; height:120px; border:3px solid #333; border-radius:12px; margin:5px; background:white; cursor:pointer; box-shadow:2px 4px 8px rgba(0,0,0,0.3);}
+.kartu:hover{transform:scale(1.05);}
+.angka{font-size:24px; font-weight:bold;}
+.kartu img{width:40px; margin-top:5px;}
+.target{font-size:22px; font-weight:bold; color:#d32f2f; padding:10px; margin:20px auto; border:3px dashed #d32f2f; border-radius:10px; width:180px; background:#fff8f8;}
+.target img{width:60px; display:block; margin:5px auto;}
+.jawaban{font-size:20px; min-height:30px; margin:10px; font-weight:bold; color:#004d40;}
+.opsi button{margin:3px; padding:8px 15px; font-size:16px; border:none; border-radius:6px; cursor:pointer; background:#00796b; color:white;}
+.opsi button:hover{background:#004d40;}
+.skor{font-size:20px; margin:10px; color:#1a237e; font-weight:bold;}
+.timer{font-size:20px; font-weight:bold; color:#e65100; margin:10px;}
+.feedback{font-size:36px; margin:5px; min-height:40px;}
+.akhir{margin-top:20px; font-size:22px; color:#004d40; font-weight:bold;}
+.gajah-ikon{font-size:36px; margin:5px;}
+.ulang-btn{margin-top:15px; padding:10px 20px; font-size:18px; border:none; border-radius:10px; background:#ff7043; color:white; cursor:pointer;}
+.ulang-btn:hover{background:#bf360c;}
+.level-btn{padding:10px 20px; font-size:16px; margin:5px; border-radius:6px; border:none; background:#26a69a; color:white; cursor:pointer;}
+.level-btn:hover{background:#004d40;}
+.player-board{border:2px solid #004d40; border-radius:10px; padding:10px; display:inline-block; margin:5px; vertical-align:top; width:220px;}
+#gajah-fly{position:absolute;width:50px;height:50px;pointer-events:none; display:none;}
+#gajah-fly img{width:50px;}
+</style>
+</head>
+<body>
+<h1>🐘 Koleksi Gajah SMP</h1>
+<h2>Pilih Mode & Level</h2>
+<button class="level-btn" onclick="mulaiGame('single','mudah')">Single Player Mudah</button>
+<button class="level-btn" onclick="mulaiGame('single','sedang')">Single Player Sedang</button>
+<button class="level-btn" onclick="mulaiGame('single','sulit')">Single Player Sulit</button>
+<br>
+<button class="level-btn" onclick="mulaiGame('multi','mudah')">Multiplayer Mudah</button>
+<button class="level-btn" onclick="mulaiGame('multi','sedang')">Multiplayer Sedang</button>
+<button class="level-btn" onclick="mulaiGame('multi','sulit')">Multiplayer Sulit</button>
+
+<div class="target" id="target"></div>
+<div class="timer" id="timer">⏳ 5</div>
+
+<div id="single-container">
+<div id="deck" class="board"></div>
+<div class="opsi">
+<button onclick="tambahOpr(0,'+')">+</button>
+<button onclick="tambahOpr(0,'-')">−</button>
+<button onclick="tambahOpr(0,'*')">×</button>
+<button onclick="tambahOpr(0,'/')">÷</button>
+</div>
+<div class="jawaban" id="jawaban"></div>
+<div class="feedback" id="feedback"></div>
+<div class="skor" id="skor">Gajah Terkumpul: 0 🐘</div>
+</div>
+
+<div id="multi-container" style="display:none;">
+<div class="player-board">
+<h3>Player 1</h3>
+<div id="deck1" class="board"></div>
+<div class="opsi">
+<button onclick="tambahOpr(1,'+')">+</button>
+<button onclick="tambahOpr(1,'-')">−</button>
+<button onclick="tambahOpr(1,'*')">×</button>
+<button onclick="tambahOpr(1,'/')">÷</button>
+</div>
+<div class="jawaban" id="jawaban1"></div>
+<div class="feedback" id="feedback1"></div>
+<div class="skor" id="skor1">Player 1: 0 🐘</div>
+</div>
+
+<div class="player-board">
+<h3>Player 2</h3>
+<div id="deck2" class="board"></div>
+<div class="opsi">
+<button onclick="tambahOpr(2,'+')">+</button>
+<button onclick="tambahOpr(2,'-')">−</button>
+<button onclick="tambahOpr(2,'*')">×</button>
+<button onclick="tambahOpr(2,'/')">÷</button>
+</div>
+<div class="jawaban" id="jawaban2"></div>
+<div class="feedback" id="feedback2"></div>
+<div class="skor" id="skor2">Player 2: 0 🐘</div>
+</div>
+</div>
+
+<div id="gajah-fly"><img src="https://cdn-icons-png.flaticon.com/512/616/616408.png"></div>
+<div class="akhir" id="akhir"></div>
+
+<audio id="suaraBenar" src="https://freesound.org/data/previews/331/331912_3248244-lq.mp3"></audio>
+<audio id="suaraSalah" src="https://freesound.org/data/previews/256/256113_3263906-lq.mp3"></audio>
+
+<script>
+const kartuPemain=[
+{angka:1,img:"https://cdn-icons-png.flaticon.com/512/590/590685.png"},
+{angka:2,img:"https://cdn-icons-png.flaticon.com/512/590/590685.png"},
+{angka:3,img:"https://cdn-icons-png.flaticon.com/512/590/590685.png"},
+{angka:5,img:"https://cdn-icons-png.flaticon.com/512/590/590685.png"},
+{angka:7,img:"https://cdn-icons-png.flaticon.com/512/590/590685.png"},
+{angka:9,img:"https://cdn-icons-png.flaticon.com/512/590/590685.png"}
+];
+const gambarGajah=[
+"https://cdn-icons-png.flaticon.com/512/616/616408.png",
+"https://cdn-icons-png.flaticon.com/512/1998/1998592.png",
+"https://cdn-icons-png.flaticon.com/512/3069/3069170.png"
+];
+
+let mode='single', target=0, ekspresi="", ekspresi1="", ekspresi2="", skor=0, skor1=0, skor2=0, soalKe=0, totalSoal=15, timer=5, interval;
+let jawabanDiterima=false;
+let level='mudah', waktuPerSoal=5, minTarget=5, maxTarget=15;
+
+function mulaiGame(pilihanMode,pilihanLevel){
+mode=pilihanMode; level=pilihanLevel;
+if(level==='mudah'){waktuPerSoal=5; minTarget=5; maxTarget=15;}
+else if(level==='sedang'){waktuPerSoal=4; minTarget=10; maxTarget=25;}
+else{waktuPerSoal=3; minTarget=15; maxTarget=35;}
+document.querySelectorAll('.level-btn').forEach(b=>b.style.display='none');
+document.getElementById("single-container").style.display=mode==='single'?'block':'none';
+document.getElementById("multi-container").style.display=mode==='multi'?'block':'none';
+if(mode==='single'){tampilkanKartuSingle();}
+else{tampilkanKartu(1); tampilkanKartu(2);}
+lanjutSoal();
+}
+
+function acakTarget(){
+let pola=Math.random()<0.5?'arit':'pola';
+if(pola==='arit'){ target=Math.floor(Math.random()*(maxTarget-minTarget+1))+minTarget; }
+else{ let start=Math.floor(Math.random()*5)+1; let step=Math.floor(Math.random()*5)+1; target=start+step*3; }
+let gambar=gambarGajah[Math.floor(Math.random()*gambarGajah.length)];
+document.getElementById("target").innerHTML="Target: "+target+"<br><img src='"+gambar+"'>";
+jawabanDiterima=false;
+ekspresi=""; ekspresi1=""; ekspresi2="";
+document.getElementById("jawaban").textContent="";
+document.getElementById("jawaban1").textContent="";
+document.getElementById("jawaban2").textContent="";
+}
+
+function tampilkanKartuSingle(){
+const deck=document.getElementById("deck"); deck.innerHTML="";
+kartuPemain.forEach(k=>{
+let div=document.createElement("div"); div.className="kartu";
+div.innerHTML=`<div class="angka">${k.angka}</div><img src="${k.img}"/>`;
+div.onclick=()=>tambahAngka(0,k.angka); deck.appendChild(div);
+});
+}
+
+function tampilkanKartu(pemain){
+const deck=document.getElementById("deck"+pemain); deck.innerHTML="";
+kartuPemain.forEach(k=>{
+let div=document.createElement("div"); div.className="kartu";
+div.innerHTML=`<div class="angka">${k.angka}</div><img src="${k.img}"/>`;
+div.onclick=()=>tambahAngka(pemain,k.angka); deck.appendChild(div);
+});
+}
+
+function tambahAngka(pemain,a){
+if(mode==='single'){ ekspresi+=a; document.getElementById("jawaban").textContent=ekspresi; cekJawabanSingle(); }
+else{ if(pemain===1){ ekspresi1+=a; document.getElementById("jawaban1").textContent=ekspresi1; cekJawabanMulti(1); }
+      else{ ekspresi2+=a; document.getElementById("jawaban2").textContent=ekspresi2; cekJawabanMulti(2); } }
+}
+
+function tambahOpr(pemain,o){
+if(mode==='single' && ekspresi.length>0){ ekspresi+=o; document.getElementById("jawaban").textContent=ekspresi; }
+else if(mode==='multi'){
+if(pemain===1 && ekspresi1.length>0){ ekspresi1+=o; document.getElementById("jawaban1").textContent=ekspresi1; }
+if(pemain===2 && ekspresi2.length>0){ ekspresi2+=o; document.getElementById("jawaban2").textContent=ekspresi2; }
+}
+}
+
+function animasiGajah(pemain){
+const gajah=document.getElementById("gajah-fly");
+gajah.style.display="block";
+const targetDiv=document.getElementById("target");
+const rectTarget=targetDiv.getBoundingClientRect();
+gajah.style.left=rectTarget.left+"px";
+gajah.style.top=rectTarget.top+"px";
+let skorDiv;
+if(mode==='single') skorDiv=document.getElementById("skor");
+else skorDiv=document.getElementById("skor"+pemain);
+const rectSkor=skorDiv.getBoundingClientRect();
+gajah.style.transition="all 1s linear";
+setTimeout(()=>{ gajah.style.left=rectSkor.left+"px"; gajah.style.top=rectSkor.top+"px"; },50);
+setTimeout(()=>{ gajah.style.display="none"; gajah.style.transition=""; },1100);
+}
+
+function cekJawabanSingle(){
+if(jawabanDiterima) return;
+try{ let hasil=eval(ekspresi);
+if(hasil===target){ jawabanDiterima=true; skor++; document.getElementById("skor").textContent="Gajah Terkumpul: "+skor+" 🐘";
+animasiGajah(); document.getElementById("suaraBenar").play(); document.getElementById("feedback").textContent="✅";
+setTimeout(lanjutSoal,800); } else { document.getElementById("suaraSalah").play(); document.getElementById("feedback").textContent="❌";
+setTimeout(()=>{document.getElementById("feedback").textContent="";},500); }
+}catch{document.getElementById("suaraSalah").play(); document.getElementById("feedback").textContent="❌";
+setTimeout(()=>{document.getElementById("feedback").textContent="";},500);}
+}
+
+function cekJawabanMulti(pemain){
+if(jawabanDiterima) return;
+let eksp = pemain===1 ? ekspresi1 : ekspresi2;
+try{ let hasil=eval(eksp);
+if(hasil===target){ jawabanDiterima=true;
+if(pemain===1){ skor1++; document.getElementById("skor1").textContent="Player 1: "+skor1+" 🐘"; }
+else{ skor2++; document.getElementById("skor2").textContent="Player 2: "+skor2+" 🐘"; }
+animasiGajah(pemain); document.getElementById("suaraBenar").play();
+document.getElementById("feedback"+pemain).textContent="✅"; setTimeout(lanjutSoal,800);
+}else{ document.getElementById("suaraSalah").play(); document.getElementById("feedback"+pemain).textContent="❌";
+setTimeout(()=>{document.getElementById("feedback"+pemain).textContent="";},500);}
+}catch{document.getElementById("suaraSalah").play(); document.getElementById("feedback"+pemain).textContent="❌";
+setTimeout(()=>{document.getElementById("feedback"+pemain).textContent="";},500);}
+}
+
+function mulaiTimer(){ timer=waktuPerSoal; document.getElementById("timer").textContent="⏳ "+timer;
+interval=setInterval(()=>{ timer--; document.getElementById("timer").textContent="⏳ "+timer;
+if(timer<=0){ clearInterval(interval); lanjutSoal(); } },1000);
+}
+
+function lanjutSoal(){
+clearInterval(interval);
+soalKe++;
+if(soalKe>totalSoal){ akhirGame(); return; }
+acakTarget();
+mulaiTimer();
+}
+
+function akhirGame(){
+document.getElementById("target").innerHTML="🎉 Game Selesai!";
+document.getElementById("deck").innerHTML=""; document.getElementById("deck1").innerHTML=""; document.getElementById("deck2").innerHTML="";
+document.getElementById("jawaban").textContent=""; document.getElementById("jawaban1").textContent=""; document.getElementById("jawaban2").textContent="";
+document.getElementById("timer").textContent="";
+if(mode==='single'){ document.getElementById("akhir").innerHTML="Gajah Terkumpul: "+skor+" 🐘"+
+"<br><button class='ulang-btn' onclick='mulaiLagi()'>🔁 Main Lagi</button>"; }
+else{
+let pemenang=""; if(skor1>skor2) pemenang="Player 1 Menang 🎉"; else if(skor2>skor1) pemenang="Player 2 Menang 🎉"; else pemenang="Seri! 🤝";
+document.getElementById("akhir").innerHTML=pemenang+"<br>Player 1: "+skor1+" 🐘, Player 2: "+skor2+" 🐘"+
+"<br><button class='ulang-btn' onclick='mulaiLagi()'>🔁 Main Lagi</button>";
+}
+}
+
+function mulaiLagi(){
+skor=0; skor1=0; skor2=0; soalKe=0; ekspresi=""; ekspresi1=""; ekspresi2="";
+document.getElementById("skor").textContent="Gajah Terkumpul: 0 🐘";
+document.getElementById("skor1").textContent="Player 1: 0 🐘"; document.getElementById("skor2").textContent="Player 2: 0 🐘";
+document.getElementById("akhir").innerHTML=""; document.querySelectorAll('.level-btn').forEach(b=>b.style.display='inline-block');
+document.getElementById("target").innerHTML=""; document.getElementById("timer").textContent="";
+if(mode==='single'){tampilkanKartuSingle();} else {tampilkanKartu(1); tampilkanKartu(2);}
+}
+</script>
+</body>
+</html>
